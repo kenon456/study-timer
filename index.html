@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勉強時間管理PWA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="勉強時間管理">
+</head>
+<body>
+    <div class="container">
+        <h1>勉強時間管理</h1>
+        
+        <div class="tab-selector">
+            <button id="record-tab" class="active">記録</button>
+            <button id="stats-tab">統計</button>
+        </div>
+
+        <div id="record-section" class="tab-content active">
+            <div class="input-section">
+                <input type="text" id="subject-input" placeholder="科目名">
+                <div class="duration-control">
+                    <input type="range" id="duration-slider" min="5" max="240" step="5" value="30">
+                    <span id="duration-display">30分</span>
+                </div>
+                <button id="add-session-btn">記録を追加</button>
+            </div>
+            <ul id="session-list"></ul>
+            <p id="no-records-message" class="message-text">まだ勉強記録がありません。</p>
+        </div>
+
+        <div id="stats-section" class="tab-content">
+            <h2>統計</h2>
+            <div class="stats-summary">
+                <p>総勉強時間: <span id="total-duration">0 時間</span></p>
+            </div>
+            <h3>科目別勉強時間</h3>
+            <ul id="subject-stats-list"></ul>
+            <p id="no-stats-message" class="message-text">まだ勉強記録がありません。</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/service-worker.js")
+                    .then(registration => {
+                        console.log("Service Worker registered: ", registration);
+                    })
+                    .catch(registrationError => {
+                        console.log("Service Worker registration failed: ", registrationError);
+                    });
+            });
+        }
+    </script>
+
