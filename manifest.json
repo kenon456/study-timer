@@ -1,9 +1,8 @@
-
 {
     "name": "勉強時間管理PWA",
     "short_name": "勉強管理",
     "description": "iPhoneで使えるシンプルな勉強時間管理アプリ",
-    "start_url": "/index.html",
+    "start_url": "/study-timer/index.html",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#007aff",
