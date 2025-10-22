@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderSubjects();
     renderSessions();
     renderSubjectColorSettings();
-    setCurrentDateTime();
+    setCurrentDateTime(); // 初期表示時に現在日時を設定
 
     // イベントリスナー
     durationManualInput.addEventListener("input", () => {
@@ -54,13 +54,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     addSessionBtn.addEventListener("click", addSession);
     addSubjectBtn.addEventListener("click", addSubject);
+    
+    // 科目選択が変更されたとき
     subjectSelect.addEventListener("change", () => {
         if (subjectSelect.value === "") {
-            subjectInput.style.display = "block";
+            subjectInput.style.display = "block"; // 「科目を選択または入力」が選ばれたら入力フィールドを表示
             subjectInput.focus();
         } else {
-            subjectInput.style.display = "none";
-            subjectInput.value = "";
+            subjectInput.style.display = "none"; // 既存の科目が選ばれたら入力フィールドを隠す
+            subjectInput.value = ""; // 入力フィールドの値をクリア
         }
     });
 
@@ -78,6 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 関数定義
     function switchTab(tab) {
+        // すべてのタブボタンとセクションを非アクティブ化
         recordTabBtn.classList.remove("active");
         statsTabBtn.classList.remove("active");
         settingsTabBtn.classList.remove("active");
@@ -85,20 +88,20 @@ document.addEventListener("DOMContentLoaded", () => {
         statsSection.classList.remove("active");
         settingsSection.classList.remove("active");
 
+        // 選択されたタブをアクティブ化
         if (tab === "record") {
             recordTabBtn.classList.add("active");
             recordSection.classList.add("active");
-            setCurrentDateTime();
+            setCurrentDateTime(); // 記録タブに戻った時に現在日時を設定
         } else if (tab === "stats") {
-            statsTabBtn.classList.add("active
-");
+            statsTabBtn.classList.add("active");
             statsSection.classList.add("active");
             renderStats(); // 統計タブ表示時に再描画
         } else if (tab === "settings") {
             settingsTabBtn.classList.add("active");
             settingsSection.classList.add("active");
-            renderSubjects();
-            renderSubjectColorSettings();
+            renderSubjects(); // 設定タブ表示時に科目リストを再描画
+            renderSubjectColorSettings(); // 設定タブ表示時に色設定を再描画
         }
     }
 
@@ -129,7 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
         saveData();
         renderSubjects();
         subjectInput.value = "";
-        subjectInput.style.display = "none";
+        subjectInput.style.display = "none"; // 追加後は入力フィールドを隠す
+        subjectSelect.value = ""; // 選択をリセット
         renderSubjectColorSettings();
     }
 
@@ -149,30 +153,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function addSession() {
         let subject = subjectSelect.value;
-        if (subject === "") {
+        // 科目選択が空で、かつ入力フィールドに値がある場合、入力フィールドの値を採用
+        if (subject === "" && subjectInput.value.trim() !== "") {
             subject = subjectInput.value.trim();
-        }
-        const detail = detailInput.value.trim();
-        const duration = parseFloat(durationManualInput.value);
-        const selectedDate = dateInput.value;
-        const selectedTime = timeInput.value;
-
-        if (subject === "") {
+        } else if (subject === "") {
             alert("科目名を選択または入力してください。");
             return;
         }
+
+        const detail = detailInput.value.trim();
+        const duration = parseFloat(durationManualInput.value);
+        let selectedDate = dateInput.value;
+        let selectedTime = timeInput.value;
+
         if (isNaN(duration) || duration <= 0) {
             alert("勉強時間を正しく入力してください。");
             return;
         }
-        if (!selectedDate || !selectedTime) {
-            alert("日付と時刻を入力してください。");
-            return;
+
+        // 日付または時刻が空の場合、現在の日時で補完
+        const now = new Date();
+        if (!selectedDate) {
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            selectedDate = `${year}-${month}-${day}`;
+        }
+        if (!selectedTime) {
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            selectedTime = `${hours}:${minutes}`;
         }
 
         const sessionDateTime = new Date(`${selectedDate}T${selectedTime}:00`);
         if (isNaN(sessionDateTime.getTime())) {
-            alert("日付または時刻の形式が正しくありません。");
+            alert("日付または時刻の形式が正しくありません。\n例: 2023-01-01 12:30");
             return;
         }
 
@@ -181,7 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
             `科目: ${subject}\n` +
             `時間: ${duration} 分\n` +
             `詳細: ${detail || 'なし'}\n` +
-            `日時: ${sessionDateTime.toLocaleString()}`
+            `日時: ${sessionDateTime.toLocaleString('ja-JP')}`
         );
 
         if (!confirmation) {
@@ -189,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // 新しい科目であれば登録
-        if (!registeredSubjects.includes(subject) && subject !== "") {
+        if (!registeredSubjects.includes(subject)) {
             registeredSubjects.push(subject);
             registeredSubjects.sort();
         }
@@ -217,7 +232,7 @@ document.addEventListener("DOMContentLoaded", () => {
         detailInput.value = "";
         durationManualInput.value = "30";
         durationSlider.value = "30";
-        setCurrentDateTime();
+        setCurrentDateTime(); // 現在日時を再設定
     }
 
     function deleteSession(id) {
@@ -254,17 +269,25 @@ document.addEventListener("DOMContentLoaded", () => {
         subjectSelect.innerHTML = '<option value="">科目を選択または入力</option>';
         registeredSubjectsList.innerHTML = "";
 
-        if (registeredSubjects.length === 0) {
-            noSubjectsMessage.style.display = "block";
-            subjectInput.style.display = "block"; // 科目がない場合は入力フィールドを表示
-        } else {
-            noSubjectsMessage.style.display = "none";
+        // 科目選択ドロップダウンの更新
+        if (registeredSubjects.length > 0) {
             registeredSubjects.forEach(subject => {
                 const option = document.createElement("option");
                 option.value = subject;
                 option.textContent = subject;
                 subjectSelect.appendChild(option);
+            });
+            subjectInput.style.display = "none"; // 登録科目がある場合は入力フィールドを隠す
+        } else {
+            subjectInput.style.display = "block"; // 登録科目がない場合は入力フィールドを表示
+        }
 
+        // 設定タブの科目リストの更新
+        if (registeredSubjects.length === 0) {
+            noSubjectsMessage.style.display = "block";
+        } else {
+            noSubjectsMessage.style.display = "none";
+            registeredSubjects.forEach(subject => {
                 const li = document.createElement("li");
                 li.innerHTML = `
                     <span>${subject}</span>
@@ -272,7 +295,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 `;
                 registeredSubjectsList.appendChild(li);
             });
-            subjectInput.style.display = "none"; // 科目がある場合は入力フィールドを隠す
         }
 
         registeredSubjectsList.querySelectorAll(".delete-subject-btn").forEach(button => {
@@ -296,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         <h4>${session.subject}</h4>
                         ${session.detail ? `<p>詳細: ${session.detail}</p>` : ''}
                         <p>時間: ${session.duration} 分</p>
-                        <p>開始: ${startTime.toLocaleString()}</p>
+                        <p>開始: ${startTime.toLocaleString('ja-JP')}</p>
                         <p>獲得石: ${session.stones} 個</p>
                     </div>
                     <button class="delete-btn" data-id="${session.id}">削除</button>
@@ -366,7 +388,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = Object.values(subjectDurations).map(d => (d / 60).toFixed(1)); // 時間に変換
 
         const backgroundColors = labels.map(subject => {
-            return subjectColors[subject] || getRandomColor();
+            // 既存の色があればそれを使用、なければランダムな色を生成して保存
+            if (!subjectColors[subject]) {
+                subjectColors[subject] = getRandomColor();
+                saveData(); // 新しい色を保存
+            }
+            return subjectColors[subject];
         });
 
         subjectChartInstance = new Chart(ctx, {
@@ -383,10 +410,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 plugins: {
                     legend: {
                         position: 'top',
+                        labels: {
+                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        }
                     },
                     title: {
                         display: true,
-                        text: '科目別勉強時間 (時間)'
+                        text: '科目別勉強時間 (時間)',
+                        color: getComputedStyle(document.body).color // テキスト色をCSSから取得
                     }
                 }
             }
@@ -398,6 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
             dailyChartInstance.destroy();
         }
         const ctx = document.getElementById('dailyChart').getContext('2d');
+        // 日付をソートしてグラフの表示順を保証
         const sortedDates = Object.keys(dailyDurations).sort((a, b) => new Date(a) - new Date(b));
         const data = sortedDates.map(date => (dailyDurations[date] / 60).toFixed(1)); // 時間に変換
 
@@ -418,10 +450,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 plugins: {
                     legend: {
                         display: false,
+                        labels: {
+                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        }
                     },
                     title: {
                         display: true,
-                        text: '日別勉強時間 (時間)'
+                        text: '日別勉強時間 (時間)',
+                        color: getComputedStyle(document.body).color // テキスト色をCSSから取得
                     }
                 },
                 scales: {
@@ -429,7 +465,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: '時間'
+                            text: '時間',
+                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        },
+                        ticks: {
+                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: getComputedStyle(document.body).color // テキスト色をCSSから取得
                         }
                     }
                 }
@@ -438,18 +483,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderSubjectColorSettings() {
-        colorSettingsDiv.innerHTML = '<p class="message-text">科目ごとのグラフ色をここで設定できます。</p>'; // Reset content
+        colorSettingsDiv.innerHTML = ''; // コンテンツをクリア
+        if (registeredSubjects.length === 0) {
+            const p = document.createElement('p');
+            p.className = 'message-text';
+            p.textContent = '科目ごとのグラフ色をここで設定できます。科目を登録すると表示されます。';
+            colorSettingsDiv.appendChild(p);
+            return;
+        }
+
         registeredSubjects.forEach(subject => {
             const div = document.createElement('div');
+            // 色がまだ設定されていなければランダムな色を割り当てる
+            if (!subjectColors[subject]) {
+                subjectColors[subject] = getRandomColor();
+                saveData(); // 新しい色を保存
+            }
             div.innerHTML = `
                 <label for="color-${subject}">${subject}</label>
-                <input type="color" id="color-${subject}" value="${subjectColors[subject] || getRandomColor()}">
+                <input type="color" id="color-${subject}" value="${subjectColors[subject]}">
             `;
             const colorInput = div.querySelector(`#color-${subject}`);
             colorInput.addEventListener('change', (event) => {
                 subjectColors[subject] = event.target.value;
                 saveData();
-                renderStats();
+                renderStats(); // 色変更後に統計グラフを再描画
             });
             colorSettingsDiv.appendChild(div);
         });
