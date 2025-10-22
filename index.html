@@ -6,24 +6,35 @@
     <title>勉強時間管理PWA</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="/study-timer/icon-192x192.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="勉強時間管理">
+    <meta name="apple-mobile-web-app-title" content="勉強管理">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>勉強時間管理</h1>
         
         <div class="tab-selector">
             <button id="record-tab" class="active">記録</button>
             <button id="stats-tab">統計</button>
+            <button id="settings-tab">設定</button>
         </div>
 
         <div id="record-section" class="tab-content active">
             <div class="input-section">
-                <input type="text" id="subject-input" placeholder="科目名 (必須)">
+                <label for="date-input">日付:</label>
+                <input type="date" id="date-input">
+                <label for="time-input">時刻:</label>
+                <input type="time" id="time-input">
+                
+                <label for="subject-select">科目名:</label>
+                <select id="subject-select">
+                    <option value="">科目を選択または入力</option>
+                </select>
+                <input type="text" id="subject-input" placeholder="新しい科目名">
+                <button id="add-subject-btn">科目追加</button>
+
                 <textarea id="detail-input" placeholder="詳細メモ (任意)" rows="3"></textarea>
                 <div class="duration-control">
                     <label for="duration-manual">勉強時間 (分):</label>
@@ -40,6 +51,7 @@
             <h2>統計</h2>
             <div class="stats-summary">
                 <p>総勉強時間: <span id="total-duration">0 時間</span></p>
+                <p>獲得した石: <span id="total-stones">0 個</span></p>
             </div>
             
             <h3>科目別勉強時間</h3>
@@ -50,6 +62,19 @@
             <canvas id="dailyChart"></canvas>
             <p id="no-stats-message" class="message-text">まだ勉強記録がありません。</p>
         </div>
+
+        <div id="settings-section" class="tab-content">
+            <h2>設定</h2>
+            <h3>科目管理</h3>
+            <ul id="registered-subjects-list"></ul>
+            <p id="no-subjects-message" class="message-text">登録された科目はありません。</p>
+            
+            <h3>グラフ色設定</h3>
+            <div id="color-settings">
+                <p class="message-text">科目ごとのグラフ色をここで設定できます。</p>
+            </div>
+        </div>
+
     </div>
 
     <script src="app.js"></script>
